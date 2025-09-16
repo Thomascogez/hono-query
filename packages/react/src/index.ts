@@ -40,7 +40,18 @@ type HookifiedHonoClient<Client extends AnyClient> = {
 			: never;
 };
 
-export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Client): HookifiedHonoClient<Client> => {
+type CreateHonoReactQueryProxyOptions = {
+	throwOnHttpError?: boolean;
+	httpErrorFactory: (response: Response) => Error;
+};
+
+export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Client, honoReactQueryOptions?: CreateHonoReactQueryProxyOptions): HookifiedHonoClient<Client> => {
+	const honoReactQueryOptionsWithDefaults: CreateHonoReactQueryProxyOptions = {
+		throwOnHttpError: true,
+		httpErrorFactory: (response: Response) => new Error(response.statusText),
+		...honoReactQueryOptions
+	};
+
 	const handler: ProxyHandler<HookifiedHonoClient<AnyClient>> = {
 		get(target, prop, receiver) {
 			if (prop === "then") {
@@ -64,8 +75,8 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 							}
 
 							const response: Response = await Reflect.apply(original, receiver, callArgs);
-							if (!response.ok) {
-								throw new Error(response.statusText);
+							if (!response.ok && honoReactQueryOptionsWithDefaults.throwOnHttpError) {
+								throw honoReactQueryOptionsWithDefaults.httpErrorFactory(response);
 							}
 
 							return response[unwrapTo]();
@@ -84,9 +95,10 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 						mutationKey,
 						mutationFn: async (variables) => {
 							const response: Response = await Reflect.apply(original, receiver, [variables]);
-							if (!response.ok) {
-								throw new Error(response.statusText);
+							if (!response.ok && honoReactQueryOptionsWithDefaults.throwOnHttpError) {
+								throw honoReactQueryOptionsWithDefaults.httpErrorFactory(response);
 							}
+
 							return response[unwrapTo]();
 						},
 						...useMutationOptions

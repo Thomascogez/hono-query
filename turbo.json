@@ -12,6 +12,13 @@
       "cache": false,
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
-    }
+    },
+    "check:types": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
+    "//#check:sherif": {},
+    "//#check:knip": {},
+    "//#check:format": {}
   }
 }

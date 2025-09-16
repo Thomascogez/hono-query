@@ -7,9 +7,10 @@
 		"dev": "turbo run dev",
 		"format": "biome format --write",
 		"check:format": "biome check",
-		"check:types": "turbo run check-types",
 		"check:sherif": "sherif",
-		"check:knip": "knip"
+		"check:knip": "knip",
+		"check:types": "turbo run check-types",
+		"checks": "turbo run check:format check:sherif check:knip check:types"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.4",
