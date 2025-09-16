@@ -1,24 +1,31 @@
 {
-  "name": "hono-query",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "prettier": "^3.6.2",
-    "turbo": "^2.5.6",
-    "typescript": "5.9.2"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "bun@1.2.21",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+	"name": "hono-query",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"build:watch": "turbo run build:watch",
+		"dev": "turbo run dev",
+		"format": "biome format --write",
+		"check:format": "biome check",
+		"check:types": "turbo run check-types",
+		"check:sherif": "sherif",
+		"check:knip": "knip"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.4",
+		"@tanstack/react-query": "^5.89.0",
+		"hono": "^4.9.7",
+		"knip": "^5.63.1",
+		"sherif": "^1.6.1",
+		"tsdown": "^0.15.2",
+		"turbo": "^2.5.6",
+		"typescript": "5.9.2"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "bun@1.2.21",
+	"workspaces": [
+		"packages/*"
+	]
 }

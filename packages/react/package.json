@@ -1,0 +1,14 @@
+{
+	"name": "@hono-query/react",
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build": "tsdown",
+		"build:watch": "tsdown --watch",
+		"check:types": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@hono-query/shared": "workspace:*",
+		"@hono-query/typescript-config": "workspace:*"
+	}
+}

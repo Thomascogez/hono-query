@@ -1,0 +1,69 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+	"files": {
+		"includes": ["packages/**", "!**/dist"]
+	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"useImportType": {
+					"fix": "safe",
+					"level": "error",
+					"options": {
+						"style": "auto"
+					}
+				},
+				"useNodejsImportProtocol": {
+					"options": {},
+					"fix": "safe",
+					"level": "error"
+				},
+				"useExportType": {
+					"options": {},
+					"fix": "safe",
+					"level": "error"
+				},
+				"noParameterAssign": "error",
+				"useAsConstAssertion": "error",
+				"useDefaultParameterLast": "error",
+				"useEnumInitializers": "error",
+				"useSelfClosingElements": "error",
+				"useSingleVarDeclarator": "error",
+				"noUnusedTemplateLiteral": "error",
+				"useNumberNamespace": "error",
+				"noInferrableTypes": "error",
+				"noUselessElse": "error"
+			},
+			"correctness": {
+				"noChildrenProp": "off"
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"fix": "safe",
+					"level": "warn",
+					"options": {
+						"attributes": ["classList"],
+						"functions": ["clsx", "cva", "tw"]
+					}
+				}
+			}
+		}
+	},
+	"javascript": {
+		"jsxRuntime": "reactClassic",
+		"formatter": {
+			"enabled": true,
+			"arrowParentheses": "always",
+			"bracketSameLine": false,
+			"bracketSpacing": true,
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"semicolons": "always",
+			"trailingCommas": "none",
+			"lineWidth": 200
+		}
+	}
+}

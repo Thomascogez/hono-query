@@ -1,0 +1,22 @@
+{
+	"name": "@hono-query/shared",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:watch": "tsdown --watch",
+		"check:types": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@hono-query/typescript-config": "workspace:*",
+		"hono": "^4.9.7"
+	}
+}
