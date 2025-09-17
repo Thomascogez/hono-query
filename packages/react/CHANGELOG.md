@@ -4,4 +4,4 @@
 
 ### Patch Changes
 
-- 53420c0: Initial relase
+- 4b92ce4: Initial release

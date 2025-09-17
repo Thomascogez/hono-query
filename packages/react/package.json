@@ -2,6 +2,18 @@
 	"name": "@hono-query/react",
 	"version": "0.0.1",
 	"type": "module",
+	"author": "Thomascogez <thomas.cogez@gmail.com>",
+	"homepage": "https://github.com/Thomascogez/hono-query",
+	"bugs": {
+		"url": "https://github.com/Thomascogez/hono-query/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Thomascogez/hono-query.git"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "tsdown",
 		"build:watch": "tsdown --watch",
