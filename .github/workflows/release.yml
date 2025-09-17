@@ -33,6 +33,6 @@ jobs:
 
         - name: "Publish (react version)"
           if: startsWith(github.event.release.tag_name, '@hono-query/react')
-          run: bun publish --cwd ./packages/react
+          run: bun publish --access public --cwd ./packages/react
           env:
             NPM_CONFIG_TOKEN: ${{secrets.NPM_CONFIG_TOKEN}}
