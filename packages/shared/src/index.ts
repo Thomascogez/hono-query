@@ -1,28 +1,6 @@
-import type { Hono } from "hono";
-import type { ClientRequest, hc, InferRequestType } from "hono/client";
+import type { ClientRequest } from "hono/client";
 import type { BlankSchema } from "hono/types";
-
-export type AnyClient = ReturnType<typeof hc<Hono>>;
-
-export type OmitNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K] };
-
-export type UnwrapTarget = "json" | "text" | "blob" | "formData" | "arrayBuffer";
-
-type QueryBuilderFN<ClientFN, Args = InferRequestType<ClientFN>> = keyof Args extends never ? () => string[] : (args: Args) => string[];
-
-type QueryKeyBuilder<Client extends AnyClient> = {
-	[K in keyof Client]: Client[K] extends ClientRequest<infer RequestSchema>
-		? OmitNever<{
-				$get: "$get" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$get"]> : never;
-				$put: "$put" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$put"]> : never;
-				$post: "$post" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$post"]> : never;
-				$patch: "$patch" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$patch"]> : never;
-				$delete: "$delete" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$delete"]> : never;
-			}>
-		: Client[K] extends Record<string, unknown>
-			? QueryKeyBuilder<Client[K]>
-			: never;
-};
+import type { AnyClient, QueryKeyBuilder } from "./types";
 
 export const stableDeepObjectStringify = (object: Record<string, unknown>) => {
 	return JSON.stringify(object, (_, value) => {
@@ -75,3 +53,5 @@ export const createQueryKeyBuilder = <Client extends AnyClient>(client: Client):
 	// biome-ignore lint/suspicious/noExplicitAny: Find something better than any here 😅, but proxy are hard to properly type
 	return new Proxy(client as any, handler);
 };
+
+export type { AnyClient, OmitNever, QueryKeyBuilder, UnwrapTarget } from "./types";
