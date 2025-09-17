@@ -33,8 +33,9 @@ jobs:
         
         - name: Test
           run: bun run test:single
-          
-        - name: "Publish"
-          run: bun publish --access public
+
+        - name: "Publish (react version)"
+          if: startsWith(github.event.release.tag_name, '@hono-query/react')
+          run: bun publish --dry-run --cwd ./packages/react
           env:
             NPM_CONFIG_TOKEN: ${{secrets.NPM_CONFIG_TOKEN}}
