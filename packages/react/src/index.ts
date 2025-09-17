@@ -78,3 +78,5 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 };
 
 export { createQueryKeyBuilder } from "@hono-query/shared";
+
+export type { InferMutationRequestOptions, InferQueryRequestOptions } from "./types";

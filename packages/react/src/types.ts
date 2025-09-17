@@ -13,6 +13,10 @@ export type MutationRequestOption<Input = Record<string, unknown>, Output = unkn
 	useMutationOptions?: Omit<UseMutationOptions<Output, unknown, Input>, "mutationKey"> & { mutationKey?: UseMutationOptions["mutationKey"] };
 };
 
+export type InferQueryRequestOptions<ClientFN, Input = InferRequestType<ClientFN>, Output = InferResponseType<ClientFN>> = OmitNever<Omit<QueryRequestOption<Input, Output>, "unwrapTo">>;
+
+export type InferMutationRequestOptions<ClientFN, Input = InferRequestType<ClientFN>, Output = InferResponseType<ClientFN>> = OmitNever<Omit<MutationRequestOption<Input, Output>, "unwrapTo">>;
+
 export type ReactQueryHonoClient<Client extends AnyClient> = {
 	[K in keyof Client]: Client[K] extends ClientRequest<infer RequestSchema>
 		? OmitNever<{
