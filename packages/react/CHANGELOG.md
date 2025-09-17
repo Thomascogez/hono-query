@@ -4,4 +4,4 @@
 
 ### Patch Changes
 
-- 4b92ce4: Initial release
+- 2d8d192: Initial release
