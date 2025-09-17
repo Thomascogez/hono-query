@@ -1,28 +1,30 @@
 import type { Hono } from "hono";
 import type { ClientRequest, hc, InferRequestType } from "hono/client";
+import type { BlankSchema } from "hono/types";
 
-// biome-ignore lint/suspicious/noExplicitAny: Needed for proper generics inference
-export type AnyClient = ReturnType<typeof hc<Hono<any, any, string>>>;
+export type AnyClient = ReturnType<typeof hc<Hono>>;
 
 export type OmitNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K] };
 
 export type UnwrapTarget = "json" | "text" | "blob" | "formData" | "arrayBuffer";
 
+type QueryBuilderFN<ClientFN, Args = InferRequestType<ClientFN>> = keyof Args extends never ? () => string[] : (args: Args) => string[];
+
 type QueryKeyBuilder<Client extends AnyClient> = {
 	[K in keyof Client]: Client[K] extends ClientRequest<infer RequestSchema>
 		? OmitNever<{
-				$get: "$get" extends keyof RequestSchema ? <Args extends InferRequestType<Client[K]["$get"]>>(args: Args) => string[] : never;
-				$put: "$put" extends keyof RequestSchema ? <Args extends InferRequestType<Client[K]["$put"]>>(args: Args) => string[] : never;
-				$post: "$post" extends keyof RequestSchema ? <Args extends InferRequestType<Client[K]["$post"]>>(args: Args) => string[] : never;
-				$patch: "$patch" extends keyof RequestSchema ? <Args extends InferRequestType<Client[K]["$patch"]>>(args: Args) => string[] : never;
-				$delete: "$delete" extends keyof RequestSchema ? <Args extends InferRequestType<Client[K]["$delete"]>>(args: Args) => string[] : never;
+				$get: "$get" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$get"]> : never;
+				$put: "$put" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$put"]> : never;
+				$post: "$post" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$post"]> : never;
+				$patch: "$patch" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$patch"]> : never;
+				$delete: "$delete" extends keyof RequestSchema ? QueryBuilderFN<Client[K]["$delete"]> : never;
 			}>
 		: Client[K] extends Record<string, unknown>
 			? QueryKeyBuilder<Client[K]>
 			: never;
 };
 
-const stableDeepObjectStringify = (object: Record<string, unknown>) => {
+export const stableDeepObjectStringify = (object: Record<string, unknown>) => {
 	return JSON.stringify(object, (_, value) => {
 		if (value && typeof value === "object" && !Array.isArray(value)) {
 			return Object.keys(value)
@@ -59,7 +61,7 @@ export const createQueryKeyBuilder = <Client extends AnyClient>(client: Client):
 
 			if (["$get", "$put", "$post", "$patch", "$delete"].includes(String(prop))) {
 				return (args: Record<string, unknown>) => {
-					return requestInputToQueryKey(String(prop), (target as AnyClient[string]).$url(args).toString(), args);
+					return requestInputToQueryKey(String(prop), (target as ClientRequest<BlankSchema>).$url(args).toString(), args);
 				};
 			}
 

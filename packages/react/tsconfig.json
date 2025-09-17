@@ -1,4 +1,7 @@
 {
 	"extends": ["@hono-query/typescript-config/base.json"],
+	"compilerOptions": {
+		"jsx": "react-jsx"
+	},
 	"exclude": ["dist", "node_modules"]
 }

@@ -1,11 +1,11 @@
 import { type AnyClient, type OmitNever, requestInputToQueryKey, type UnwrapTarget } from "@hono-query/shared";
 import { type UseMutationOptions, type UseMutationResult, type UseQueryOptions, type UseQueryResult, useMutation, useQuery } from "@tanstack/react-query";
 import type { ClientRequest, InferRequestType, InferResponseType } from "hono/client";
+import type { BlankSchema } from "hono/types";
 
 type QueryRequestOption<Input = Record<string, unknown>, Output = unknown> = {
 	unwrapTo: UnwrapTarget;
-	// biome-ignore lint/complexity/noBannedTypes: We are explicitly looking for empty object here
-	params: Input extends {} ? never : Input;
+	params: keyof Input extends never ? never : Input;
 	useQueryOptions?: Omit<UseQueryOptions<Output, unknown, Output>, "queryKey"> & { queryKey?: UseQueryOptions["queryKey"] };
 };
 
@@ -64,7 +64,7 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 				return (options: QueryRequestOption) => {
 					const { params, unwrapTo, useQueryOptions } = options;
 
-					const queryKey = requestInputToQueryKey(String(prop), (target as AnyClient[string]).$url(params).toString(), params);
+					const queryKey = requestInputToQueryKey(String(prop), (target as ClientRequest<BlankSchema>).$url(params).toString(), params);
 
 					return useQuery({
 						queryKey,
@@ -90,7 +90,7 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 				return (options: MutationRequestOption) => {
 					const { unwrapTo, useMutationOptions } = options;
 
-					const mutationKey = requestInputToQueryKey(String(prop), (target as AnyClient[string]).$url().toString());
+					const mutationKey = requestInputToQueryKey(String(prop), (target as ClientRequest<BlankSchema>).$url().toString());
 					return useMutation({
 						mutationKey,
 						mutationFn: async (variables) => {

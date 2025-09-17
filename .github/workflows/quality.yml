@@ -31,3 +31,6 @@ jobs:
 
         - name: Checks
           run: bun run checks
+        
+        - name: Tests
+          run: bun run test:single
