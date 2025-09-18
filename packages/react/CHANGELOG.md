@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.3
+
+### Patch Changes
+
+- f39c323: Republish with readme
+
 ## 0.0.2
 
 ### Patch Changes
