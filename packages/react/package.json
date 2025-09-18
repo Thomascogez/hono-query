@@ -19,8 +19,7 @@
 		"build:watch": "tsdown --watch",
 		"check:types": "tsc --noEmit",
 		"test:single": "vitest run",
-		"test:watch": "vitest",
-		"prepublish": "cp ../../README.md ."
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
 		"@hono-query/shared": "workspace:*",
