@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.5
+
+### Patch Changes
+
+- 85cdc62: Missing package exports
+
 ## 0.0.4
 
 ### Patch Changes
