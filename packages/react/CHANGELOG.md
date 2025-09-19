@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.4
+
+### Patch Changes
+
+- b547e0e: Dts bundling and mark external dependencies
+
 ## 0.0.3
 
 ### Patch Changes
