@@ -15,8 +15,9 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "tsdown",
+		"build": "tsdown && bun run generate-types",
 		"build:watch": "tsdown --watch",
+		"generate-types": "bun x dts-bundle-generator ./src/index.ts --external-inlines=@hono-query/shared --out-file ./dist/index.d.ts --no-check --silent --sort",
 		"check:types": "tsc --noEmit",
 		"test:single": "vitest run",
 		"test:watch": "vitest"
