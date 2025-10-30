@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.6
+
+### Patch Changes
+
+- 473ff10: Bump depencies and fix type issue where nested method are not properly handled
+
 ## 0.0.5
 
 ### Patch Changes
