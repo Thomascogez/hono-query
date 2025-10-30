@@ -38,9 +38,7 @@ export type ReactQueryHonoClient<Client extends AnyClient> = {
 						) => UseMutationResult<Output, unknown, Input>
 					: never;
 			}>
-		: Client[K] extends Record<string, unknown>
-			? ReactQueryHonoClient<Client[K]>
-			: never;
+		: ReactQueryHonoClient<Client[K]>;
 };
 
 export type CreateHonoReactQueryProxyOptions = {
