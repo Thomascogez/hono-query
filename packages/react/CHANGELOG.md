@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.7
+
+### Patch Changes
+
+- 7a02ca3: fix type inference by defining a broader RequestSchema like type in order to have better type inference
+
 ## 0.0.6
 
 ### Patch Changes
