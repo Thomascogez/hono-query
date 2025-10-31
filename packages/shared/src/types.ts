@@ -10,6 +10,7 @@ export type UnwrapTarget = "json" | "text" | "blob" | "formData" | "arrayBuffer"
 export type RequestSchema = Partial<{
 	$get: unknown;
 	$put: unknown;
+	$post: unknown;
 	$patch: unknown;
 	$delete: unknown;
 }>;
@@ -25,7 +26,5 @@ export type QueryKeyBuilder<Client extends AnyClient> = {
 				$patch: "$patch" extends keyof Client[K] ? QueryBuilderFN<Client[K]["$patch"]> : never;
 				$delete: "$delete" extends keyof Client[K] ? QueryBuilderFN<Client[K]["$delete"]> : never;
 			}>
-		: Client[K] extends Record<string, unknown>
-			? QueryKeyBuilder<Client[K]>
-			: never;
+		: QueryKeyBuilder<Client[K]>;
 };
