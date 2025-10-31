@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.8
+
+### Patch Changes
+
+- ae26699: fix issue where deep chained error are not inferred properly
+
 ## 0.0.7
 
 ### Patch Changes
