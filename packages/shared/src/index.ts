@@ -54,4 +54,4 @@ export const createQueryKeyBuilder = <Client extends AnyClient>(client: Client):
 	return new Proxy(client as any, handler);
 };
 
-export type { AnyClient, OmitNever, QueryKeyBuilder, UnwrapTarget } from "./types";
+export type { AnyClient, OmitNever, QueryKeyBuilder, RequestSchema, UnwrapTarget } from "./types";

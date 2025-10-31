@@ -1,6 +1,6 @@
-import type { AnyClient, OmitNever, UnwrapTarget } from "@hono-query/shared";
+import type { AnyClient, OmitNever, RequestSchema, UnwrapTarget } from "@hono-query/shared";
 import type { UseMutationOptions, UseMutationResult, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
-import type { ClientRequest, InferRequestType, InferResponseType } from "hono/client";
+import type { InferRequestType, InferResponseType } from "hono/client";
 
 export type QueryRequestOption<Input = Record<string, unknown>, Output = unknown> = {
 	unwrapTo: UnwrapTarget;
@@ -18,27 +18,29 @@ export type InferQueryRequestOptions<ClientFN, Input = InferRequestType<ClientFN
 export type InferMutationRequestOptions<ClientFN, Input = InferRequestType<ClientFN>, Output = InferResponseType<ClientFN>> = OmitNever<Omit<MutationRequestOption<Input, Output>, "unwrapTo">>;
 
 export type ReactQueryHonoClient<Client extends AnyClient> = {
-	[K in keyof Client]: Client[K] extends ClientRequest<infer RequestSchema>
+	[K in keyof Client]: Client[K] extends RequestSchema
 		? OmitNever<{
-				$get: "$get" extends keyof RequestSchema
+				$get: "$get" extends keyof Client[K]
 					? <Input = InferRequestType<Client[K]["$get"]>, Output = InferResponseType<Client[K]["$get"]>>(options: OmitNever<QueryRequestOption<Input, Output>>) => UseQueryResult<Output, unknown>
 					: never;
-				$put: "$put" extends keyof RequestSchema
+				$put: "$put" extends keyof Client[K]
 					? <Input = InferRequestType<Client[K]["$put"]>, Output = InferResponseType<Client[K]["$put"]>>(options: MutationRequestOption<Input, Output>) => UseMutationResult<Output, unknown, Input>
 					: never;
-				$post: "$post" extends keyof RequestSchema
+				$post: "$post" extends keyof Client[K]
 					? <Input = InferRequestType<Client[K]["$post"]>, Output = InferResponseType<Client[K]["$post"]>>(options: MutationRequestOption<Input, Output>) => UseMutationResult<Output, unknown, Input>
 					: never;
-				$patch: "$patch" extends keyof RequestSchema
+				$patch: "$patch" extends keyof Client[K]
 					? <Input = InferRequestType<Client[K]["$patch"]>, Output = InferResponseType<Client[K]["$patch"]>>(options: MutationRequestOption<Input, Output>) => UseMutationResult<Output, unknown, Input>
 					: never;
-				$delete: "$delete" extends keyof RequestSchema
+				$delete: "$delete" extends keyof Client[K]
 					? <Input = InferRequestType<Client[K]["$delete"]>, Output = InferResponseType<Client[K]["$delete"]>>(
 							options: MutationRequestOption<Input, Output>
 						) => UseMutationResult<Output, unknown, Input>
 					: never;
 			}>
-		: ReactQueryHonoClient<Client[K]>;
+		: Client[K] extends Record<string, unknown>
+			? ReactQueryHonoClient<Client[K]>
+			: never;
 };
 
 export type CreateHonoReactQueryProxyOptions = {
