@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.1.0
+
+### Minor Changes
+
+- 8b7d62d: Allow to pass request option to proxied use query + automatically bind useQuery signal to api client method
+
 ## 0.0.9
 
 ### Patch Changes
