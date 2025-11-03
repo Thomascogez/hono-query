@@ -1,4 +1,4 @@
-import type { AnyClient, OmitNever, RequestSchema, UnwrapTarget } from "@hono-query/shared";
+import type { AnyClient, HasHttpMethods, NonHttpMethodKeys, OmitNever, UnwrapTarget } from "@hono-query/shared";
 import type { UseMutationOptions, UseMutationResult, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
 import type { InferRequestType, InferResponseType } from "hono/client";
 
@@ -18,7 +18,7 @@ export type InferQueryRequestOptions<ClientFN, Input = InferRequestType<ClientFN
 export type InferMutationRequestOptions<ClientFN, Input = InferRequestType<ClientFN>, Output = InferResponseType<ClientFN>> = OmitNever<Omit<MutationRequestOption<Input, Output>, "unwrapTo">>;
 
 export type ReactQueryHonoClient<Client extends AnyClient> = {
-	[K in keyof Client]: Client[K] extends RequestSchema
+	[K in keyof Client]: Client[K] extends HasHttpMethods
 		? OmitNever<{
 				$get: "$get" extends keyof Client[K]
 					? <Input = InferRequestType<Client[K]["$get"]>, Output = InferResponseType<Client[K]["$get"]>>(options: OmitNever<QueryRequestOption<Input, Output>>) => UseQueryResult<Output, unknown>
@@ -37,7 +37,8 @@ export type ReactQueryHonoClient<Client extends AnyClient> = {
 							options: MutationRequestOption<Input, Output>
 						) => UseMutationResult<Output, unknown, Input>
 					: never;
-			}>
+			}> &
+				ReactQueryHonoClient<Pick<Client[K], NonHttpMethodKeys<Client[K]>>> // Only recurse non-HTTP method keys
 		: ReactQueryHonoClient<Client[K]>;
 };
 
