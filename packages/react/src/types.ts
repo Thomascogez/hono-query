@@ -1,10 +1,11 @@
 import type { AnyClient, HasHttpMethods, NonHttpMethodKeys, OmitNever, UnwrapTarget } from "@hono-query/shared";
 import type { UseMutationOptions, UseMutationResult, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
-import type { InferRequestType, InferResponseType } from "hono/client";
+import type { ClientRequestOptions, InferRequestType, InferResponseType } from "hono/client";
 
 export type QueryRequestOption<Input = Record<string, unknown>, Output = unknown> = {
 	unwrapTo: UnwrapTarget;
 	params: keyof Input extends never ? never : Input;
+	requestParams?: ClientRequestOptions;
 	useQueryOptions?: Omit<UseQueryOptions<Output, unknown, Output>, "queryKey"> & { queryKey?: UseQueryOptions["queryKey"] };
 };
 

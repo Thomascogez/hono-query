@@ -1,7 +1,6 @@
 import { type AnyClient, requestInputToQueryKey } from "@hono-query/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { ClientRequest } from "hono/client";
-import type { BlankSchema } from "hono/types";
+import type { ClientRequest, ClientRequestOptions } from "hono/client";
 import type { CreateHonoReactQueryProxyOptions, MutationRequestOption, QueryRequestOption, ReactQueryHonoClient } from "./types";
 
 export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Client, honoReactQueryOptions?: CreateHonoReactQueryProxyOptions): ReactQueryHonoClient<Client> => {
@@ -21,17 +20,20 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 
 			if (prop === "$get") {
 				return (options: QueryRequestOption) => {
-					const { params, unwrapTo, useQueryOptions } = options;
+					const { params, requestParams, unwrapTo, useQueryOptions } = options;
 
-					const queryKey = requestInputToQueryKey(String(prop), (target as ClientRequest<BlankSchema>).$url(params).toString(), params);
+					// biome-ignore lint/suspicious/noExplicitAny: we don't care about the request schema here since it's a property always defined
+					const queryKey = requestInputToQueryKey(String(prop), (target as ClientRequest<any>).$url(params).toString(), params);
 
 					return useQuery({
 						queryKey,
-						queryFn: async () => {
+						queryFn: async ({ signal }) => {
 							const callArgs: unknown[] = [];
 							if (params) {
 								callArgs.push(params);
 							}
+
+							callArgs.push({ ...requestParams, init: { signal, ...requestParams?.init } } satisfies ClientRequestOptions);
 
 							const response: Response = await Reflect.apply(original, receiver, callArgs);
 							if (!response.ok && honoReactQueryOptionsWithDefaults.throwOnHttpError) {
@@ -49,7 +51,8 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 				return (options: MutationRequestOption) => {
 					const { unwrapTo, useMutationOptions } = options;
 
-					const mutationKey = requestInputToQueryKey(String(prop), (target as ClientRequest<BlankSchema>).$url().toString());
+					// biome-ignore lint/suspicious/noExplicitAny: we don't care about the request schema here since it's a property always defined
+					const mutationKey = requestInputToQueryKey(String(prop), (target as ClientRequest<any>).$url().toString());
 					return useMutation({
 						mutationKey,
 						mutationFn: async (variables) => {

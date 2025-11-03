@@ -1,5 +1,4 @@
 import type { ClientRequest } from "hono/client";
-import type { BlankSchema } from "hono/types";
 import type { AnyClient, QueryKeyBuilder } from "./types";
 
 export const stableDeepObjectStringify = (object: Record<string, unknown>) => {
@@ -39,7 +38,8 @@ export const createQueryKeyBuilder = <Client extends AnyClient>(client: Client):
 
 			if (["$get", "$put", "$post", "$patch", "$delete"].includes(String(prop))) {
 				return (args: Record<string, unknown>) => {
-					return requestInputToQueryKey(String(prop), (target as ClientRequest<BlankSchema>).$url(args).toString(), args);
+					// biome-ignore lint/suspicious/noExplicitAny: we don't care about the request schema here since it's a property always defined
+					return requestInputToQueryKey(String(prop), (target as ClientRequest<any>).$url(args).toString(), args);
 				};
 			}
 

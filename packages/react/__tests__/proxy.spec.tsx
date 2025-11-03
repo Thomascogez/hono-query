@@ -12,6 +12,11 @@ import { createHonoReactQueryProxy } from "../src";
 
 const stubHonoRouter = new Hono()
 	.get("/", (c) => c.json({ message: "hello", foo: "bar" }))
+	.get(
+		"/request-params",
+		validator("query", (value) => value as { param: string }),
+		(c) => c.json({ param: c.req.valid("query").param, header: c.req.header("x-custom-header") })
+	)
 	.get("/:id", (c) => c.json({ id: c.req.param("id"), message: "hello" }))
 	.put("/", (c) => c.json({ message: "hello" }))
 	.put(
@@ -401,5 +406,26 @@ describe("Proxy", () => {
 		await vi.advanceTimersByTimeAsync(1000);
 
 		expect(successCallback).toHaveBeenCalledOnce();
+	});
+
+	it("should proxy a $get method to a useQuery hook with request params", async () => {
+		const apiQueryClient = createHonoReactQueryProxy(client);
+
+		const Component = () => {
+			const { data } = apiQueryClient["request-params"].$get({ unwrapTo: "json", params: { query: { param: "param" } }, requestParams: { headers: { "x-custom-header": "header" } } });
+			return (
+				<>
+					<div>param: {data?.param}</div>
+					<div>header: {data?.header}</div>
+				</>
+			);
+		};
+
+		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+		await vi.advanceTimersByTimeAsync(1000);
+
+		expect(screen.getByText("param: param")).toBeDefined();
+		expect(screen.getByText("header: header")).toBeDefined();
 	});
 });

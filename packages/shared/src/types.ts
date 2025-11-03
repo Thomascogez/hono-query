@@ -1,7 +1,7 @@
-import type { Hono } from "hono";
-import type { hc, InferRequestType } from "hono/client";
+import type { InferRequestType } from "hono/client";
 
-export type AnyClient = ReturnType<typeof hc<Hono>>;
+//@todo: find a better way to do this
+export type AnyClient = unknown;
 
 export type OmitNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K] };
 
