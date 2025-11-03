@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.0.9
+
+### Patch Changes
+
+- 1f4d256: Fix type issue where hc client method does not extends with ClientRequest type
+
 ## 0.0.8
 
 ### Patch Changes
