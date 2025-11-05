@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.0
+
+### Minor Changes
+
+- 4959cf6: (Breaking): now queryClient.$[method](...) return an object with {(query/mutation)Options: {}, use(Query/Mutation): () => {}}, this allow to be more flexible and use the query client for more use cases like query prefetching
+
 ## 0.1.0
 
 ### Minor Changes

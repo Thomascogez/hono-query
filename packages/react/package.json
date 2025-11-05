@@ -1,6 +1,6 @@
 {
 	"name": "@hono-query/react",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"type": "module",
 	"author": "Thomascogez <thomas.cogez@gmail.com>",
 	"homepage": "https://github.com/Thomascogez/hono-query",
