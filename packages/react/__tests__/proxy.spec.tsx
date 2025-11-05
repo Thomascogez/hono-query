@@ -1,10 +1,10 @@
+import { stableDeepObjectStringify } from "@hono-query/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Hono } from "hono";
 import { hc } from "hono/client";
 import { validator } from "hono/validator";
 import { http } from "msw";
-
 import { setupServer } from "msw/node";
 import type { PropsWithChildren } from "react";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -74,358 +74,499 @@ describe("Proxy", () => {
 		cleanup();
 	});
 
-	it("should setup a query proxy for a client", () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+	describe("Transform to hook", () => {
+		it("should setup a query proxy for a client", () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		expect(apiQueryClient).toBeDefined();
+			expect(apiQueryClient).toBeDefined();
+		});
+
+		it("should proxy a $get method to a useQuery hook", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { data } = apiQueryClient.index.$get({ unwrapTo: "json" }).useQuery();
+				return <div>{data?.message}</div>;
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("hello")).toBeDefined();
+		});
+
+		it("should proxy a $get method to a useQuery hook with request params", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { data } = apiQueryClient[":id"].$get({ params: { param: { id: "hello" } }, unwrapTo: "json" }).useQuery();
+				return <div>id: {data?.id}</div>;
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("id: hello")).toBeDefined();
+		});
+
+		it("should proxy a $get method to a useQuery with custom useQuery options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { data } = apiQueryClient.index
+					.$get({
+						unwrapTo: "json",
+						useQueryOptions: {
+							select(data) {
+								return { ...data, message: "modified" };
+							}
+						}
+					})
+					.useQuery();
+				return <div>{data?.message}</div>;
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("modified")).toBeDefined();
+		});
+
+		it("should proxy a $put method to a useMutation hook", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index.$put({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("hello")).toBeDefined();
+		});
+
+		it("should proxy a $put method to a useMutation hook with request params", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.params[":id"].$put({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({ param: { id: "1" }, json: { param: "body param" } })} />
+						<span>id: {data?.id}</span>
+						<span>param: {data?.param}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("id: 1")).toBeDefined();
+			expect(screen.getByText("param: body param")).toBeDefined();
+		});
+
+		it("should proxy a $put method to a useMutation with custom useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const successCallback = vi.fn();
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index
+					.$put({
+						unwrapTo: "json",
+						useMutationOptions: {
+							onSuccess: successCallback
+						}
+					})
+					.useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(successCallback).toHaveBeenCalledOnce();
+		});
+
+		it("should proxy a $post method to a useMutation hook", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index.$post({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("hello")).toBeDefined();
+		});
+
+		it("should proxy a $post method to a useMutation hook with request params", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.params[":id"].$post({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({ param: { id: "1" }, json: { param: "body param" } })} />
+						<span>id: {data?.id}</span>
+						<span>param: {data?.param}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("id: 1")).toBeDefined();
+			expect(screen.getByText("param: body param")).toBeDefined();
+		});
+
+		it("should proxy a $post method to a useMutation with custom useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const successCallback = vi.fn();
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index
+					.$post({
+						unwrapTo: "json",
+						useMutationOptions: {
+							onSuccess: successCallback
+						}
+					})
+					.useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(successCallback).toHaveBeenCalledOnce();
+		});
+
+		it("should proxy a $patch method to a useMutation hook", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index.$patch({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("hello")).toBeDefined();
+		});
+
+		it("should proxy a $patch method to a useMutation hook with request params", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.params[":id"].$patch({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({ param: { id: "1" }, json: { param: "body param" } })} />
+						<span>id: {data?.id}</span>
+						<span>param: {data?.param}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("id: 1")).toBeDefined();
+			expect(screen.getByText("param: body param")).toBeDefined();
+		});
+
+		it("should proxy a $patch method to a useMutation with custom useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const successCallback = vi.fn();
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index
+					.$patch({
+						unwrapTo: "json",
+						useMutationOptions: {
+							onSuccess: successCallback
+						}
+					})
+					.useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(successCallback).toHaveBeenCalledOnce();
+		});
+
+		it("should proxy a $delete method to a useMutation hook", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index.$delete({ unwrapTo: "json" }).useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("hello")).toBeDefined();
+		});
+
+		it("should proxy a $delete method to a useMutation with custom useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const successCallback = vi.fn();
+
+			const Component = () => {
+				const { mutate, data } = apiQueryClient.index
+					.$delete({
+						unwrapTo: "json",
+						useMutationOptions: {
+							onSuccess: successCallback
+						}
+					})
+					.useMutation();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(successCallback).toHaveBeenCalledOnce();
+		});
+
+		it("should proxy a $get method to a useQuery hook with request params", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { data } = apiQueryClient["request-params"].$get({ unwrapTo: "json", params: { query: { param: "param" } }, requestParams: { headers: { "x-custom-header": "header" } } }).useQuery();
+				return (
+					<>
+						<div>param: {data?.param}</div>
+						<div>header: {data?.header}</div>
+					</>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			await vi.advanceTimersByTimeAsync(1000);
+
+			expect(screen.getByText("param: param")).toBeDefined();
+			expect(screen.getByText("header: header")).toBeDefined();
+		});
 	});
 
-	it("should proxy a $get method to a useQuery hook", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+	describe("Transform to query/mutation options", () => {
+		it("should convert a $get method to useQuery options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		const Component = () => {
-			const { data } = apiQueryClient.index.$get({ unwrapTo: "json" });
-			return <div>{data?.message}</div>;
-		};
+			const queryOptions = apiQueryClient.index.$get({ unwrapTo: "json" }).queryOptions;
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+			expect(queryOptions).to.have.property("queryKey").to.deep.equal(["$get", client.index.$url().toString()]);
+			expect(queryOptions).to.have.property("queryFn").to.be.a("function");
+		});
 
-		await vi.advanceTimersByTimeAsync(1000);
+		it("should convert a $get method with params to useQuery options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		expect(screen.getByText("hello")).toBeDefined();
-	});
+			const queryOptions = apiQueryClient[":id"].$get({ params: { param: { id: "hello" } }, unwrapTo: "json" }).queryOptions;
 
-	it("should proxy a $get method to a useQuery hook with request params", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+			expect(queryOptions)
+				.to.have.property("queryKey")
+				.to.deep.equal(["$get", client[":id"].$url({ param: { id: "hello" } }).toString(), stableDeepObjectStringify({ param: { id: "hello" } })]);
 
-		const Component = () => {
-			const { data } = apiQueryClient[":id"].$get({ params: { param: { id: "hello" } }, unwrapTo: "json" });
-			return <div>id: {data?.id}</div>;
-		};
+			expect(queryOptions).to.have.property("queryFn").to.be.a("function");
+		});
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+		it("should convert a $get method with addition query options to useQuery options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		await vi.advanceTimersByTimeAsync(1000);
+			const queryOptions = apiQueryClient.index.$get({ unwrapTo: "json", useQueryOptions: { refetchInterval: 1000 } }).queryOptions;
 
-		expect(screen.getByText("id: hello")).toBeDefined();
-	});
+			expect(queryOptions).to.have.property("queryKey").to.deep.equal(["$get", client.index.$url().toString()]);
+			expect(queryOptions).to.have.property("queryFn").to.be.a("function");
+			expect(queryOptions).to.have.property("refetchInterval", 1000);
+		});
 
-	it("should proxy a $get method to a useQuery with custom useQuery options", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+		it("should proxy a $put method to a useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		const Component = () => {
-			const { data } = apiQueryClient.index.$get({
-				unwrapTo: "json",
-				useQueryOptions: {
-					select(data) {
-						return { ...data, message: "modified" };
-					}
-				}
-			});
-			return <div>{data?.message}</div>;
-		};
+			const mutationOptions = apiQueryClient.index.$put({ unwrapTo: "json" }).mutationOptions;
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$put", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-		await vi.advanceTimersByTimeAsync(1000);
+		it("should convert a $put method with params to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		expect(screen.getByText("modified")).toBeDefined();
-	});
+			const mutationOptions = apiQueryClient.params[":id"].$put({ unwrapTo: "json" }).mutationOptions;
 
-	it("should proxy a $put method to a useMutation hook", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$put", client.params[":id"].$url().toString()]);
 
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$put({ unwrapTo: "json" });
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
+		it("should convert a $put method with addition mutation options to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+			const mutationOptions = apiQueryClient.index.$put({ unwrapTo: "json", useMutationOptions: { retryDelay: 1000 } }).mutationOptions;
 
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$put", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+			expect(mutationOptions).to.have.property("retryDelay", 1000);
+		});
 
-		expect(screen.getByText("hello")).toBeDefined();
-	});
+		it("should proxy a $post method to a useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-	it("should proxy a $put method to a useMutation hook with request params", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+			const mutationOptions = apiQueryClient.index.$post({ unwrapTo: "json" }).mutationOptions;
 
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.params[":id"].$put({ unwrapTo: "json" });
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$post", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({ param: { id: "1" }, json: { param: "body param" } })} />
-					<span>id: {data?.id}</span>
-					<span>param: {data?.param}</span>
-				</div>
-			);
-		};
+		it("should convert a $post method with params to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+			const mutationOptions = apiQueryClient.params[":id"].$post({ unwrapTo: "json" }).mutationOptions;
 
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$post", client.params[":id"].$url().toString()]);
 
-		expect(screen.getByText("id: 1")).toBeDefined();
-		expect(screen.getByText("param: body param")).toBeDefined();
-	});
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-	it("should proxy a $put method to a useMutation with custom useMutation options", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+		it("should convert a $post method with addition mutation options to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		const successCallback = vi.fn();
+			const mutationOptions = apiQueryClient.index.$post({ unwrapTo: "json", useMutationOptions: { retryDelay: 1000 } }).mutationOptions;
 
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$put({
-				unwrapTo: "json",
-				useMutationOptions: {
-					onSuccess: successCallback
-				}
-			});
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$post", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+			expect(mutationOptions).to.have.property("retryDelay", 1000);
+		});
 
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
+		it("should proxy a $patch method to a useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+			const mutationOptions = apiQueryClient.index.$patch({ unwrapTo: "json" }).mutationOptions;
 
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$patch", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-		expect(successCallback).toHaveBeenCalledOnce();
-	});
+		it("should convert a $patch method with params to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-	it("should proxy a $post method to a useMutation hook", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+			const mutationOptions = apiQueryClient.params[":id"].$patch({ unwrapTo: "json" }).mutationOptions;
 
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$post({ unwrapTo: "json" });
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$patch", client.params[":id"].$url().toString()]);
 
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
+		it("should convert a $delete method to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
+			const mutationOptions = apiQueryClient.index.$delete({ unwrapTo: "json" }).mutationOptions;
 
-		expect(screen.getByText("hello")).toBeDefined();
-	});
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$delete", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+		});
 
-	it("should proxy a $post method to a useMutation hook with request params", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
+		it("should convert a $delete method with addition mutation options to useMutation options", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
 
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.params[":id"].$post({ unwrapTo: "json" });
+			const mutationOptions = apiQueryClient.index.$delete({ unwrapTo: "json", useMutationOptions: { retryDelay: 1000 } }).mutationOptions;
 
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({ param: { id: "1" }, json: { param: "body param" } })} />
-					<span>id: {data?.id}</span>
-					<span>param: {data?.param}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(screen.getByText("id: 1")).toBeDefined();
-		expect(screen.getByText("param: body param")).toBeDefined();
-	});
-
-	it("should proxy a $post method to a useMutation with custom useMutation options", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const successCallback = vi.fn();
-
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$post({
-				unwrapTo: "json",
-				useMutationOptions: {
-					onSuccess: successCallback
-				}
-			});
-
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(successCallback).toHaveBeenCalledOnce();
-	});
-
-	it("should proxy a $patch method to a useMutation hook", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$patch({ unwrapTo: "json" });
-
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(screen.getByText("hello")).toBeDefined();
-	});
-
-	it("should proxy a $patch method to a useMutation hook with request params", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.params[":id"].$patch({ unwrapTo: "json" });
-
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({ param: { id: "1" }, json: { param: "body param" } })} />
-					<span>id: {data?.id}</span>
-					<span>param: {data?.param}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(screen.getByText("id: 1")).toBeDefined();
-		expect(screen.getByText("param: body param")).toBeDefined();
-	});
-
-	it("should proxy a $patch method to a useMutation with custom useMutation options", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const successCallback = vi.fn();
-
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$patch({
-				unwrapTo: "json",
-				useMutationOptions: {
-					onSuccess: successCallback
-				}
-			});
-
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(successCallback).toHaveBeenCalledOnce();
-	});
-
-	it("should proxy a $delete method to a useMutation hook", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$delete({ unwrapTo: "json" });
-
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(screen.getByText("hello")).toBeDefined();
-	});
-
-	it("should proxy a $delete method to a useMutation with custom useMutation options", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const successCallback = vi.fn();
-
-		const Component = () => {
-			const { mutate, data } = apiQueryClient.index.$delete({
-				unwrapTo: "json",
-				useMutationOptions: {
-					onSuccess: successCallback
-				}
-			});
-
-			return (
-				<div>
-					<button data-testid="button" type="button" onClick={() => mutate({})} />
-					<span>{data?.message}</span>
-				</div>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		fireEvent.click(screen.getByTestId("button"));
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(successCallback).toHaveBeenCalledOnce();
-	});
-
-	it("should proxy a $get method to a useQuery hook with request params", async () => {
-		const apiQueryClient = createHonoReactQueryProxy(client);
-
-		const Component = () => {
-			const { data } = apiQueryClient["request-params"].$get({ unwrapTo: "json", params: { query: { param: "param" } }, requestParams: { headers: { "x-custom-header": "header" } } });
-			return (
-				<>
-					<div>param: {data?.param}</div>
-					<div>header: {data?.header}</div>
-				</>
-			);
-		};
-
-		render(<WrapperComponent>{<Component />}</WrapperComponent>);
-
-		await vi.advanceTimersByTimeAsync(1000);
-
-		expect(screen.getByText("param: param")).toBeDefined();
-		expect(screen.getByText("header: header")).toBeDefined();
+			expect(mutationOptions).to.have.property("mutationKey").to.deep.equal(["$delete", client.index.$url().toString()]);
+			expect(mutationOptions).to.have.property("mutationFn").to.be.a("function");
+			expect(mutationOptions).to.have.property("retryDelay", 1000);
+		});
 	});
 });

@@ -93,7 +93,7 @@ api.posts.$get({
     staleTime: 60000,
     enabled: true
   }
-})
+}).useQuery()
 ```
 
 ### Mutation Options (POST/PUT/PATCH/DELETE)
@@ -114,7 +114,7 @@ const mutation = api.posts.$post({
     onSuccess: () => console.log('Created!'),
     onError: (error) => console.error(error)
   }
-})
+}).useMutation()
 
 // Use the mutation
 mutation.mutate({ 
@@ -160,6 +160,22 @@ const useGetUser = (options: InferQueryRequestOptions<typeof client.users[":id"]
             ...options.useQueryOptions,
         }
     })
+}
+```
+
+Alternatively, you can also do:
+
+```typescript
+import type {InferQueryRequestOptions} from "@hono-query/react"
+
+import { type client, apiQueryClient } from "./client"
+
+export const getUserQueryOptions = (options: InferQueryRequestOptions<typeof client.users[":id"].$get>) => {
+  return apiQueryClient.users[":id"].$get({unwrapTo: "json", ...options}).queryOptions
+}
+
+const useGetUser = (options: InferQueryRequestOptions<typeof client.users[":id"].$get>) => {
+  return apiQueryClient.users[":id"].$get(getUserQueryOptions(options))
 }
 ```
 

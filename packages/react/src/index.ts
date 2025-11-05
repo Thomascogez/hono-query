@@ -1,5 +1,5 @@
 import { type AnyClient, requestInputToQueryKey } from "@hono-query/shared";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { mutationOptions, queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import type { ClientRequest, ClientRequestOptions } from "hono/client";
 import type { CreateHonoReactQueryProxyOptions, MutationRequestOption, QueryRequestOption, ReactQueryHonoClient } from "./types";
 
@@ -25,7 +25,7 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 					// biome-ignore lint/suspicious/noExplicitAny: we don't care about the request schema here since it's a property always defined
 					const queryKey = requestInputToQueryKey(String(prop), (target as ClientRequest<any>).$url(params).toString(), params);
 
-					return useQuery({
+					const requestQueryOptions = queryOptions({
 						queryKey,
 						queryFn: async ({ signal }) => {
 							const callArgs: unknown[] = [];
@@ -44,6 +44,11 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 						},
 						...useQueryOptions
 					});
+
+					return {
+						queryOptions: requestQueryOptions,
+						useQuery: () => useQuery(requestQueryOptions)
+					};
 				};
 			}
 
@@ -53,7 +58,8 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 
 					// biome-ignore lint/suspicious/noExplicitAny: we don't care about the request schema here since it's a property always defined
 					const mutationKey = requestInputToQueryKey(String(prop), (target as ClientRequest<any>).$url().toString());
-					return useMutation({
+
+					const queryMutationOptions = mutationOptions({
 						mutationKey,
 						mutationFn: async (variables) => {
 							const response: Response = await Reflect.apply(original, receiver, [variables]);
@@ -65,6 +71,11 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 						},
 						...useMutationOptions
 					});
+
+					return {
+						mutationOptions: queryMutationOptions,
+						useMutation: () => useMutation(queryMutationOptions)
+					};
 				};
 			}
 
