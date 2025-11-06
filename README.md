@@ -34,7 +34,7 @@ export const UserProfile = ({ userId }) => {
   const { data, isLoading } = api.users[':id'].$get({
     unwrapTo: 'json',
     params: { id: userId }
-  }).useQuery
+  }).useQuery()
 
   // POST request -> useMutation
   const createUser = api.users.$post({
