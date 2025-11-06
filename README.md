@@ -34,12 +34,12 @@ export const UserProfile = ({ userId }) => {
   const { data, isLoading } = api.users[':id'].$get({
     unwrapTo: 'json',
     params: { id: userId }
-  })
+  }).useQuery
 
   // POST request -> useMutation
   const createUser = api.users.$post({
     unwrapTo: 'json'
-  })
+  }).useMutation()
 
   if (isLoading) return <div>Loading...</div>
 
