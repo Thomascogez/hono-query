@@ -7,6 +7,11 @@ import { createQueryKeyBuilder, stableDeepObjectStringify } from "../src";
 describe("Query key builder", () => {
 	const stubHonoRouter = new Hono()
 		.get("/", (c) => c.json({ message: "hello", foo: "bar" }))
+		.get(
+			"/query",
+			validator("query", (value) => value as { a: string; b: string; c: string }),
+			(c) => c.json(c.req.valid("query"))
+		)
 		.get("/:id", (c) => c.json({ id: c.req.param("id"), message: "hello" }))
 		.put("/", (c) => c.json({ message: "hello" }))
 		.put(
@@ -96,5 +101,13 @@ describe("Query key builder", () => {
 		const queryKeyBuilder = createQueryKeyBuilder(client);
 
 		expect(queryKeyBuilder.index.$delete()).toEqual(["$delete", "https://example.com/"]);
+	});
+
+	it("should build a query key with query params", () => {
+		const queryKeyBuilder = createQueryKeyBuilder(client);
+
+		const query = { c: "c", b: "b", a: "a" };
+
+		expect(queryKeyBuilder.query.$get({ query })).toEqual(["$get", "https://example.com/query?a=a&b=b&c=c", stableDeepObjectStringify({ query })]);
 	});
 });

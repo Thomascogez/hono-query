@@ -16,7 +16,15 @@ export const stableDeepObjectStringify = (object: Record<string, unknown>) => {
 };
 
 export const requestInputToQueryKey = (method: string, url: string, args?: Record<string, unknown>) => {
-	const queryKey = [method, url];
+	const queryKey = [method];
+
+	if (URL.canParse(url)) {
+		const urlObject = new URL(url);
+		urlObject.searchParams.sort();
+		queryKey.push(urlObject.toString());
+	} else {
+		queryKey.push(url);
+	}
 
 	if (args) {
 		if (Object.keys(args).length > 0) {
