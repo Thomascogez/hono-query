@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.1
+
+### Patch Changes
+
+- 2d10db6: Ensure url in query keys sort search params
+
 ## 0.2.0
 
 ### Minor Changes
