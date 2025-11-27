@@ -27,13 +27,13 @@ export const createHonoReactQueryProxy = <Client extends AnyClient>(client: Clie
 
 					const requestQueryOptions = queryOptions({
 						queryKey,
-						queryFn: async ({ signal }) => {
+						queryFn: async (context) => {
 							const callArgs: unknown[] = [];
 							if (params) {
 								callArgs.push(params);
 							}
 
-							callArgs.push({ ...requestParams, init: { signal, ...requestParams?.init } } satisfies ClientRequestOptions);
+							callArgs.push({ ...requestParams, init: { signal: context.signal, ...requestParams?.init } } satisfies ClientRequestOptions);
 
 							const response: Response = await Reflect.apply(original, receiver, callArgs);
 							if (!response.ok && honoReactQueryOptionsWithDefaults.throwOnHttpError) {
