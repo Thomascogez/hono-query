@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.2
+
+### Patch Changes
+
+- 606b907: Use query context without destructuring in order to avoid double query trigger under strict mode
+
 ## 0.2.1
 
 ### Patch Changes
