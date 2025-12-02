@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.5
+
+### Patch Changes
+
+- 735cba3: Improve build process + mjs build
+
 ## 0.2.4
 
 ### Patch Changes
