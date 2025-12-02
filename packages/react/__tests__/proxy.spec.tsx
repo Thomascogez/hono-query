@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Hono } from "hono";
 import { hc } from "hono/client";
+import { HTTPException } from "hono/http-exception";
 import { validator } from "hono/validator";
 import { http } from "msw";
 import { setupServer } from "msw/node";
@@ -36,6 +37,13 @@ const stubHonoRouter = new Hono()
 		validator("json", (value) => value as { param: string }),
 		(c) => c.json({ id: c.req.param("id"), param: c.req.valid("json").param, message: "hello" })
 	)
+	.get("/with-error-throw", (c) => {
+		if (c.req.query("throw")) {
+			throw new HTTPException(400, { message: "Bad request" });
+		}
+
+		return c.json({ message: "hello" });
+	})
 	.delete("/", (c) => c.json({ message: "hello" }));
 
 const restHandlers = [
@@ -438,6 +446,27 @@ describe("Proxy", () => {
 
 			expect(screen.getByText("param: param")).toBeDefined();
 			expect(screen.getByText("header: header")).toBeDefined();
+		});
+
+		it("should proxy an endpoint that could throw an http exception", async () => {
+			const apiQueryClient = createHonoReactQueryProxy(client);
+
+			const Component = () => {
+				const { data, error } = apiQueryClient["with-error-throw"].$get({ unwrapTo: "json" }).useQ();
+
+				return (
+					<div>
+						<button data-testid="button" type="button" onClick={() => mutate({})} />
+						<span>{data?.message}</span>
+						<span>{error?.message}</span>
+					</div>
+				);
+			};
+
+			render(<WrapperComponent>{<Component />}</WrapperComponent>);
+
+			fireEvent.click(screen.getByTestId("button"));
+			await vi.advanceTimersByTimeAsync(1000);
 		});
 	});
 
