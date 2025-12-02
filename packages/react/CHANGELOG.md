@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.3
+
+### Patch Changes
+
+- 2fffab8: Bump dev dependencies
+
 ## 0.2.2
 
 ### Patch Changes
