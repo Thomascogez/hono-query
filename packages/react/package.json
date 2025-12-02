@@ -17,14 +17,13 @@
 	"exports": {
 		"./package.json": "./package.json",
 		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
 		}
 	},
 	"scripts": {
-		"build": "tsdown && bun run generate-types",
+		"build": "tsdown",
 		"build:watch": "tsdown --watch",
-		"generate-types": "bun x dts-bundle-generator ./src/index.ts --external-inlines=@hono-query/shared --out-file ./dist/index.d.ts --no-check --silent --sort",
 		"check:types": "tsc --noEmit",
 		"test:single": "vitest run",
 		"test:watch": "vitest"
