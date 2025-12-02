@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.4
+
+### Patch Changes
+
+- 4ab6133: Bump dev dependencies
+
 ## 0.2.3
 
 ### Patch Changes
