@@ -1,5 +1,11 @@
 # @hono-query/react
 
+## 0.2.6
+
+### Patch Changes
+
+- a77b65d: Fix dts bundling with internal package
+
 ## 0.2.5
 
 ### Patch Changes
