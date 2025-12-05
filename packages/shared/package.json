@@ -5,14 +5,9 @@
 	"private": true,
 	"exports": {
 		"./package.json": "./package.json",
-		".": {
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.mts"
-		}
+		".": "./src/index.ts"
 	},
 	"scripts": {
-		"build": "tsdown",
-		"build:watch": "tsdown --watch",
 		"check:types": "tsc --noEmit",
 		"test:single": "vitest run",
 		"test:watch": "vitest"
